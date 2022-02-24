@@ -1,0 +1,155 @@
+import java.util.Map;
+Table table; //<>// //<>// //<>//
+PFont caseFont; 
+Screen homeScreen;
+Screen graphScreen;
+int currentScreen;
+ArrayList<Case> caseArrayList1, caseArrayList2, caseArrayList3, caseArrayList4, currentCaseArrayList;
+Map areaCasesMap1, stateCasesMap1, countryCasesMap1;
+//float scrollValue = 0;
+
+void settings() {
+  size(SCREENX, SCREENY);
+}
+void setup() {
+  // load the csv files
+  caseArrayList1 = readFile("cases-1k.csv"); 
+  //caseArrayList2 = readFile("cases-10k.csv"); 
+  //caseArrayList3 = readFile("cases-97k.csv"); 
+  //caseArrayList4 = readFile("cases-1M.csv"); 
+  //Added current list to make changing list easier in the future - Jacob 25/03/2021
+  currentCaseArrayList = caseArrayList1;
+  background(255);
+  currentScreen = HOME_SCREEN_VALUE;
+  caseFont = loadFont("GillSansMT-32.vlw");
+  homeScreen = new Screen(255);
+  homeScreen.createWidget(SCREENX/2, 500, 100, 50, "Graph", color(255, 0, 0), 
+    caseFont, EVENT_HOME_TO_GRAPH);
+  graphScreen = new Screen(0);
+  graphScreen.createWidget(100, 100, 100, 50, "Home", color(0, 255, 0), 
+    caseFont, EVENT_GRAPH_TO_HOME);
+
+  // create a map that stores the number of cases for each area  - Harold 31/03/2021
+  areaCasesMap1= createCaseCountMap(caseArrayList1, 0);
+  stateCasesMap1 = createCaseCountMap(caseArrayList1, 1);
+  countryCasesMap1 = createCaseCountMap(caseArrayList1, 2); // redundant for now as USA is the only country
+  
+  println(areaCasesMap1);
+  println();
+  println(stateCasesMap1);
+  println();
+  println(countryCasesMap1);
+  println(areaCasesMap1.get("Norfolk"));
+  println(stateCasesMap1.get("New Hampshire"));
+}
+
+void draw() {
+  if (currentScreen == HOME_SCREEN_VALUE) {
+    homeScreen.draw();
+    fill(0);
+    text("Home", SCREENX/2, 50);
+  } else if (currentScreen == GRAPH_SCREEN_VALUE) {
+    graphScreen.draw();
+    fill(255);
+    text("Graph", SCREENX/2, 50);
+  }
+}
+
+ArrayList<Case> readFile(String fileName) {
+  /* This method loads the data in the csv file into an arrayList 
+   * row count is also printed to the console - Harold 24/03/2021
+   */
+  ArrayList<Case> caseArrayList = new ArrayList<Case>(); //Initialise data structure and load data -Jacob 24/03/2021
+
+  table = loadTable(fileName, "header");
+
+  for (TableRow row : table.rows()) {
+
+    String date = row.getString("date");
+    String area = row.getString("area");
+    String countyOrState = row.getString("county/state");
+    String geoid = row.getString("geoid");
+    String cases = row.getString("cases");
+    String country = row.getString("country");
+
+    // Setting up variables for Case class and storing instances of said class
+    // into data structure -Jacob 24/03/2021
+    int geoidInt = parseInt(geoid);
+    if (geoidInt == 0)
+      geoidInt = -1;
+    int casesInt = parseInt(cases);            
+    caseArrayList.add(new Case(date, area, countyOrState, 
+      geoidInt, casesInt, country)); 
+
+    // println(date, area, countyOrState, geoid, cases, country);
+  }
+
+  //println(table.getRowCount() + " total rows in table");
+
+  return caseArrayList;
+}
+
+//added by Jason 29/03/21
+//add switch instead of the if statements to each screen case if they have many widgets
+void mouseReleased() {
+  if (currentScreen == HOME_SCREEN_VALUE) {
+    if (homeScreen.getEvent() == EVENT_HOME_TO_GRAPH) {
+      currentScreen = GRAPH_SCREEN_VALUE;
+    }
+  }
+  if (currentScreen == GRAPH_SCREEN_VALUE) {
+    if (graphScreen.getEvent() == EVENT_GRAPH_TO_HOME) {
+      currentScreen = HOME_SCREEN_VALUE;
+    }
+  }
+}
+
+
+
+Map createCaseCountMap(ArrayList<Case> data, int selector) 
+/* 
+  creates and returns a map that stores the number of cases by 
+  area, state or country - Harold 31/03/2021
+*/
+{
+  String parameter;
+  
+  Map countMap = new HashMap<String, Integer>();
+  for (Case row : data) 
+  {
+    if (selector == 0) parameter = row.area;
+    else if (selector ==  1) parameter = row.state;
+    else parameter = row.country;
+    
+    if (!countMap.containsKey(parameter)) 
+    {
+      countMap.put(parameter, row.cases); 
+    }
+     else countMap.put(parameter, (int) countMap.get(parameter) + row.cases);
+  }
+  
+  return countMap;
+}
+
+
+//Print out the instances on the screen in a nice font using
+//text(). - Dylan 25/03/2021
+/*
+void printCase() {
+ int count = 0;
+ for (Case newCase : currentCaseArrayList) {
+ fill(0);
+ textAlign(LEFT);
+ text(newCase.caseString(), 50, 50+(count*32)); 
+ count=count+1;
+ }
+ noLoop();
+ }
+ */
+
+/* scroll method for future use - Dylan 25/03/2021
+ void mouseWheel(MouseEvent event) {
+ scrollValue -= event.getCount()*10;
+ println(scrollValue);
+ }
+ */

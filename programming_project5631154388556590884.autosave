@@ -1,0 +1,73 @@
+Table table; //<>// //<>//
+PFont caseFont; 
+ArrayList<Case> caseArrayList1, caseArrayList2, caseArrayList3, caseArrayList4;
+//float scrollValue = 0;
+
+
+void setup() {
+  // load the csv files
+  caseArrayList1 = readFile("cases-1k.csv"); 
+  caseArrayList2 = readFile("cases-10k.csv"); 
+  caseArrayList3 = readFile("cases-97k.csv"); 
+  caseArrayList4 = readFile("cases-1M.csv"); 
+
+  size(1920, 1080);
+  background(255);
+  caseFont = loadFont("GillSansMT-32.vlw");
+}
+
+void draw() {
+  printCase();
+}
+
+ArrayList<Case> readFile(String fileName) {
+  /* This method loads the data in the csv file into an arrayList 
+   * row count is also printed to the console - Harold 24/03/2021
+   */
+  ArrayList<Case> caseArrayList = new ArrayList<Case>(); //Initialise data structure and load data -Jacob 24/03/2021
+    
+  table = loadTable(fileName, "header");
+
+  for (TableRow row : table.rows()) {
+
+    String date = row.getString("date");
+    String area = row.getString("area");
+    String countyOrState = row.getString("county/state");
+    String geoid = row.getString("geoid");
+    String cases = row.getString("cases");
+    String country = row.getString("country");
+
+    // Setting up variables for Case class and storing instances of said class
+    // into data structure -Jacob 24/03/2021
+    int geoidInt = parseInt(geoid);            
+    int casesInt = parseInt(cases);            
+    caseArrayList.add(new Case(date, area, countyOrState, 
+      geoidInt, casesInt, country)); 
+      
+    // println(date, area, countyOrState, geoid, cases, country);
+  }
+
+   println(table.getRowCount() + " total rows in table");
+  
+  return caseArrayList;
+}
+
+//Print out the instances on the screen in a nice font using
+//text(). - Dylan 25/03/2021
+void printCase() {
+  int count = 0;
+  for (Case newCase : caseArrayList1) {
+    fill(0);
+    textAlign(LEFT);
+    text(newCase.caseString(), 50, 50+(count*32)); 
+    count=count+1;
+  }
+  noLoop();
+}
+
+/* scroll method for future use - Dylan 25/03/2021
+ void mouseWheel(MouseEvent event) {
+   scrollValue -= event.getCount()*10;
+   println(scrollValue);
+ }
+ */
